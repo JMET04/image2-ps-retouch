@@ -1,0 +1,4 @@
+interface:
+  display_name: "原片精修"
+  short_description: "ChatGPT 标注与判断受光，用 PS 局部补光、压光、塑造体积并保留原像素"
+  default_prompt: "用 $original-photo-retouch 从指定照片中选片，由 ChatGPT 判断并标注光影，参考 Image2，在 Photoshop 原片上局部补光、压光、塑造体积，保存可编辑 PSD。"

@@ -1,0 +1,15 @@
+{
+  "name": "image2-ps-retouch",
+  "version": "0.3.2",
+  "description": "Cull photographs, annotate with ChatGPT vision, and shape local light with editable native Photoshop dodge/burn guided by image2.",
+  "author": {"name": "Local Photography Workflow"},
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "原片精修 · Image2 + Photoshop",
+    "shortDescription": "ChatGPT 标注，用 PS 局部补光、压光和塑造体积。",
+    "longDescription": "包含原图选片、Image2 审美参考、ChatGPT 视觉标注和 Photoshop 原尺寸可编辑蒙版。模型判断主光方向与主体关系，分别建立局部补光、压光和体积塑造；独立强度、羽化与不透明度可调。支持多边形、曲线、区域合并与扣除，校验标注复核；停用 PS 自动主体和天空识别。保留原像素，逐张检查纹理、受光与边缘。",
+    "developerName": "Local Photography Workflow",
+    "category": "Productivity",
+    "capabilities": ["Photo culling", "ChatGPT visual annotations", "Image2 art direction", "Local light shaping", "Native Photoshop masks", "Quality review"]
+  }
+}

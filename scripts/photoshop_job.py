@@ -11,6 +11,8 @@ from artifact_evidence import fingerprint
 from photo_annotations import compile_annotations, read_json, sha
 from local_lighting import compile_local_light
 from straightening import compile_straightening
+from revision_source import validate_revision
+from repair_patches import compile_patch
 
 
 def validate(job: dict, recipe_dir: Path | None = None) -> dict:
@@ -20,11 +22,11 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
     if '.downloading' in source.name:
         raise ValueError('Download is not complete')
     stage = job.get('stage', 'retouch')
-    if stage not in {'prepare', 'retouch'}:
+    if stage not in {'prepare', 'retouch', 'revision'}:
         raise ValueError('Unknown stage')
-    if 'save_psd' in job and (not isinstance(job['save_psd'], bool) or stage != 'retouch'):
+    if 'save_psd' in job and (not isinstance(job['save_psd'], bool) or stage not in {'retouch','revision'}):
         raise ValueError('save_psd is a boolean retouch-only output option')
-    if 'lighting_review' in job and (not isinstance(job['lighting_review'], bool) or stage != 'retouch'):
+    if 'lighting_review' in job and (not isinstance(job['lighting_review'], bool) or stage not in {'retouch','revision'}):
         raise ValueError('lighting_review is a boolean retouch-only output option')
     if job.get('input_profile') and (job['input_profile'] not in {'sRGB IEC61966-2.1', 'Adobe RGB (1998)', 'ProPhoto RGB'} or not job.get('input_profile_evidence')):
         raise ValueError('Input profile assignment requires a supported profile and evidence')
@@ -33,13 +35,13 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
                                       or not job['working_profile_reason'].strip()):
         raise ValueError('Reference matching supports an explicitly justified sRGB working profile')
     if job.get('scratch_history_policy') and (job['scratch_history_policy'] != 'discard_owned_history'
-                                             or stage != 'retouch'):
+                                             or stage not in {'retouch','revision'}):
         raise ValueError('History cache policy applies only to an exclusive owned retouch job')
     output = Path(job['output_base']).resolve()
     if not output.name or output == source:
         raise ValueError('Output must be separate from original')
     output.parent.mkdir(parents=True, exist_ok=True)
-    if stage == 'retouch':
+    if stage in {'retouch','revision'}:
         reference = job.get('reference', {})
         if not Path(reference.get('path', '')).is_file() or not reference.get('prompt') or not reference.get('comparison'):
             raise ValueError('Retouch requires a real reference, its prompt, and visual comparison')
@@ -50,6 +52,15 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         if not job.get('steps'):
             raise ValueError('Photo-specific steps are required')
     job = dict(job)
+    job.pop('revision_provenance',None)
+    if stage=='revision':
+        job['revision_provenance']=validate_revision(job.get('revision'),source)
+        if job.get('input_profile') or job.get('crop') or job.get('straighten'):
+            raise ValueError('Revision preserves the accepted geometry/profile; reconstruct from original for another transform')
+        if job.get('working_profile') not in (None,'sRGB IEC61966-2.1'):
+            raise ValueError('Revision must retain the inspected sRGB profile')
+    elif job.get('revision'):
+        raise ValueError('PSD revision requires the explicit revision stage')
     job['steps'] = [dict(step) for step in job.get('steps', [])]
     lighting = []
     for i, step in enumerate(job['steps']):
@@ -80,7 +91,10 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         if not annotation_path.is_absolute():
             annotation_path = (recipe_dir or Path.cwd()) / annotation_path
         annotation_path = annotation_path.resolve(strict=True)
-        compiled = compile_annotations(read_json(annotation_path), expected_source=source)
+        compiled = compile_annotations(read_json(annotation_path), expected_source=(
+            job['revision_provenance']['psd'] if stage=='revision' else source))
+        if stage=='revision' and compiled['canvas']!=job['revision_provenance']['canvas']:
+            raise ValueError('Revision annotation must use the final native PSD canvas')
         job['annotation_canvas'] = compiled['canvas']
         job['annotation_provenance'] = {
             'path': str(annotation_path), 'sha256': sha(annotation_path),
@@ -92,9 +106,17 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
     # them from the reviewed source-bound annotation artifact ourselves.
     elif job.get('annotation_canvas') or job.get('annotation_provenance'):
         raise ValueError('Compiled annotation data requires its reviewed artifact')
-    for step in job.get('steps', []):
+    repairs=[];adjustment_seen=False
+    for i,step in enumerate(job.get('steps', [])):
         if not isinstance(step.get('name'), str) or not step['name'].strip():
             raise ValueError('Each adjustment needs a meaningful layer name')
+        if step.get('kind')=='clone_patch':
+            if stage!='revision' or adjustment_seen:
+                raise ValueError('Small repair patches must precede new revision adjustments')
+            job['steps'][i],proof=compile_patch(step,compiled)
+            repairs.append(proof)
+            continue
+        adjustment_seen=True
         if step.get('kind') not in {'curves', 'hue_saturation'}:
             raise ValueError('Unsupported adjustment')
         if step.get('blend', 'normal') not in {'normal', 'luminosity', 'color'}:
@@ -105,7 +127,7 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
             if not isinstance(step.get('channels'), dict) or not step['channels']:
                 raise ValueError('At least one curve channel is required')
             for channel, points in step['channels'].items():
-                if channel not in {'composite', 'red', 'green', 'blue'} or len(points) < 2:
+                if channel not in {'composite', 'red', 'green', 'blue'} or not 2 <= len(points) <= 14:
                     raise ValueError('Invalid curve channel or points')
                 if any(len(p) != 2 or not all(isinstance(v, (int, float)) and math.isfinite(v) and 0 <= v <= 255 for v in p) for p in points):
                     raise ValueError('Curve values outside 0..255')
@@ -134,6 +156,10 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
                 raise ValueError('Invalid ellipse bounds')
             if not 0 <= region.get('feather_fraction', .01) <= .2:
                 raise ValueError('Invalid mask feather')
+    job.pop('repair_provenance',None)
+    if repairs:job['repair_provenance']=repairs
+    if len({s['name'] for s in job['steps']})!=len(job['steps']):
+        raise ValueError('Every revision or adjustment layer needs a unique name')
     job.pop('geometry_provenance', None)
     if 'straighten_transform' in job:
         raise ValueError('Use the reviewed straightening guide, not precompiled geometry')
@@ -152,6 +178,7 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
     suffixes = ['_baseline.jpg'] if stage == 'prepare' else ((['.psd'] if job.get('save_psd', True) else []) + ['.jpg', '_execution.json'])
     if job.get('lighting_review'):
         suffixes.append('_lighting_off.jpg')
+    if stage=='revision':suffixes.append('_revision_before.jpg')
     for suffix in suffixes:
         destination = Path(str(output) + suffix)
         if destination == source:
@@ -247,12 +274,18 @@ def main():
                 'off':job['output_base']+'_lighting_off.jpg',
                 'toggled_layer_names':[job['steps'][i]['name'] for i in job['lighting_review_indices']],
                 'scope':'Same native document, grade and geometry; only designated local_light layers toggled. Requires visual review.'}
+        if job['stage']=='revision':
+            suffixes.append('_revision_before.jpg')
+            report['revision_provenance']=job['revision_provenance']
+            if sha(job['revision_provenance']['psd'])!=job['revision_provenance']['psd_sha256']:
+                raise RuntimeError('Previous PSD changed during revision')
         report['output_fingerprints'] = [fingerprint(job['output_base'] + suffix) for suffix in suffixes]
         if session:
             report['fresh_small_session'] = session
             report['normal_idle_quit'] = {'status': 'pending'}
-        if job['stage'] == 'retouch':
+        if job['stage'] in {'retouch','revision'}:
             report['saved_psd'] = job.get('save_psd', True)
+        if job.get('repair_provenance'):report['repair_provenance']=job['repair_provenance']
         if job.get('annotation_provenance'):
             report['annotation_provenance'] = job['annotation_provenance']
         if job.get('local_lighting_provenance'):

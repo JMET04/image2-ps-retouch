@@ -4,7 +4,7 @@
 
 工作流程：检查原片与100%焦点 → 逐张生成参考 → 记录主光、视觉落点、受光/背光面与环境反射 → 标注并实际查看蒙版预览 → 原生 Photoshop 工作样 → 塑光开关和100%细节复核 → 保存16位PSD与sRGB JPEG → 真正重新打开PSD核验。执行成功与视觉验收分别记录。
 
-从 [SKILL.md](skills/original-photo-retouch/SKILL.md) 开始。具体参数见 [配方与执行](skills/original-photo-retouch/references/recipe.md)、[模型标注](skills/original-photo-retouch/references/vision-annotations.md)、[光影设计](skills/original-photo-retouch/references/light-design.md)。
+从 [SKILL.md](skills/original-photo-retouch/SKILL.md) 开始。具体参数见 [配方与执行](skills/original-photo-retouch/references/recipe.md)、[模型标注](skills/original-photo-retouch/references/vision-annotations.md)、[光影设计](skills/original-photo-retouch/references/light-design.md) 和 [局部修复与保留图层续修](skills/original-photo-retouch/references/repair-and-revision.md)。
 
 ## 环境
 
@@ -20,6 +20,8 @@ python -X utf8 scripts/photoshop_job.py .\my-recipe.json --validate-only
 ```
 
 配方及标注由实际看图后逐张编写，不能把例图的蒙版套到其他照片。最终 PSD 保留原片解码的内嵌智能对象、独立调整层和蒙版。局部塑光可按明度范围加权；近白雪面仍抢亮时，可显式调低该局部白点，避免只压暗中间调。
+
+0.5.0支持从已验收PSD追加独立图层：原片、既有PSD、配方、执行回执及真实重开证明按哈希绑定，另存新路径。模型实际观察到的小灰点，可从同片相邻干净区域做小范围柔边克隆；它不使用生成像素或自动内容识别。新增曝光响应曲线用于顺原光方向提亮受光面，仍需人工观察体积、白端和肤色，不能据此声称物理重照明。面部适度补光与减色保留纹理和身份特征，未实现自动磨皮或自动人脸修复。
 
 ## 稳定运行
 
@@ -47,3 +49,5 @@ python -X utf8 scripts/photoshop_job.py .\my-recipe.json --validate-only
 ![坡面体积：同底稿塑光开关对比](examples/IMG_4528/lighting-comparison.jpg)
 
 0.4.0在36张原片上逐张执行并实际验收；全部最终PSD已在Photoshop重新打开核验。公开仓库仅含上述两组无人物预览，人物照片和完整项目记录保留在本地。
+
+0.5.0再次逐张复核同一批36张：5张按需追加修改，31张保留已验收第三版。追加修改覆盖天空圆斑、受光面微补光、自然脸侧减红及实际水平校正；文件核验与100%指定细节观察分别记录。40项自动测试验证参数和证据约束，实际视觉和原生Photoshop验收另行完成。上面的公开对比仍明确展示第三版，不冒充第四版新增效果；本轮其余照片仅本地交付。Git标签 `v0.4.0` 和 `approved-v2-20261019` 保留旧流程以便回滚。

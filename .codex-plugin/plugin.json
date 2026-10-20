@@ -1,15 +1,15 @@
 {
   "name": "image2-ps-retouch",
-  "version": "0.4.0",
-  "description": "Cull photographs, annotate with ChatGPT vision, and shape local light with editable native Photoshop dodge/burn guided by image2.",
+  "version": "0.5.0",
+  "description": "Review photographs with ChatGPT vision, shape local light, repair small observed defects, and revise editable Photoshop files while preserving original pixels.",
   "author": {
     "name": "Local Photography Workflow"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "原片精修 · Image2 + Photoshop",
-    "shortDescription": "ChatGPT 标注，用 PS 局部补光、压光和塑造体积。",
-    "longDescription": "包含原图选片、Image2 审美参考、ChatGPT 视觉标注和 Photoshop 原尺寸可编辑蒙版。模型判断主光方向与主体关系，分别建立局部补光、压光和体积塑造；独立强度、羽化与不透明度可调。支持多边形、曲线、区域合并与扣除，校验标注复核；停用 PS 自动主体和天空识别。保留原像素，逐张检查纹理、受光与边缘。",
+    "shortDescription": "ChatGPT 看图，用 PS 加光塑形、修小瑕疵并保留图层续修。",
+    "longDescription": "包含原图选片、Image2 审美参考、ChatGPT 视觉标注和 Photoshop 原尺寸可编辑蒙版。模型判断主光方向与主体关系，分别建立局部补光、压光和体积塑造；独立强度、羽化与不透明度可调。支持有来源绑定的既有PSD续修及同片真实像素小范围柔边克隆，逐张检查实际瑕疵和自然面部细节。停用PS自动主体和天空识别；保留原像素，分别验证文件与视觉效果。",
     "developerName": "Local Photography Workflow",
     "category": "Productivity",
     "capabilities": [
@@ -18,6 +18,8 @@
       "Image2 art direction",
       "Local light shaping",
       "Native Photoshop masks",
+      "Small original-pixel clone repairs",
+      "Evidence-bound PSD revisions",
       "Quality review"
     ]
   }

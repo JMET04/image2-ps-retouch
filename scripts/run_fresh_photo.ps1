@@ -60,11 +60,10 @@ if (Get-Process -Name Photoshop -ErrorAction SilentlyContinue) {
     if ($LASTEXITCODE -ne 0) { throw 'Guarded normal idle quit failed; inspect before recovery' }
     Wait-PhotoshopExit
 }
-# Photoshop is the interactive editor used for visual diagnosis, not a hidden
-# helper service. Keep its window observable so a blocking dialog can be read.
+# Background launch; the editor remains available for explicit visual diagnosis.
 & $pythonFile -X utf8 (Join-Path $PSScriptRoot 'project_session.py') --context $recipeFile --reserve-seconds 570
 if ($LASTEXITCODE -ne 0) { throw 'Project session limit reached before Photoshop startup.' }
-Start-Process -FilePath $photoshopFile -WindowStyle Normal
+Start-Process -FilePath $photoshopFile -WindowStyle Hidden
 & $pythonFile -X utf8 $jobScript --wait-startup-idle
 if ($LASTEXITCODE -ne 0) { throw 'Bounded startup readiness failed; no photo job submitted' }
 if ($SessionMode -eq 'ConstrainedSmall') {

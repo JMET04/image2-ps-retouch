@@ -40,10 +40,10 @@ if (Get-Process -Name Photoshop -ErrorAction SilentlyContinue) {
     if ($LASTEXITCODE -ne 0) { throw 'Guarded idle quit failed; no inspection submitted.' }
     Wait-InspectionExit
 }
-# Show the actual editor so any blocking Photoshop dialog remains observable.
+# Keep background inspection startup hidden; guarded probes expose blocking state.
 & $pythonFile -X utf8 (Join-Path $PSScriptRoot 'project_session.py') --context $psdFile --reserve-seconds 450
 if ($LASTEXITCODE -ne 0) { throw 'Project session limit reached before inspection startup.' }
-Start-Process -FilePath $photoshopFile -WindowStyle Normal
+Start-Process -FilePath $photoshopFile -WindowStyle Hidden
 & $pythonFile -X utf8 $jobScript --wait-startup-idle
 if ($LASTEXITCODE -ne 0) { throw 'Bounded startup failed; no inspection submitted.' }
 & $pythonFile -X utf8 (Join-Path $PSScriptRoot 'inspect_psd_native.py') $psdFile $ProofPath

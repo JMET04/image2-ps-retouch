@@ -65,8 +65,24 @@
         exported.saveAs(new File(path),opt,true,Extension.LOWERCASE);
         exported.close(SaveOptions.DONOTSAVECHANGES);exported=null;app.activeDocument=doc;
     }
+    function clonePatch(step) {
+        // The donor was visually checked on this PSD. Only this small native
+        // rectangle is copied; generated references are never opened here.
+        var b=step.donor_bounds;
+        doc.selection.select([[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]]]);
+        doc.selection.copy(true);doc.selection.deselect();
+        var patch=doc.paste();
+        var actual=patch.bounds,t=step.target_bounds;
+        patch.translate(UnitValue(t[0]-actual[0].as('px'),'px'),UnitValue(t[1]-actual[1].as('px'),'px'));
+        selectRegion(step.region);
+        var d=new ActionDescriptor(),ref=new ActionReference();
+        d.putClass(c('Nw  '),c('Chnl'));ref.putEnumerated(c('Chnl'),c('Chnl'),c('Msk '));
+        d.putReference(c('At  '),ref);d.putEnumerated(c('Usng'),c('UsrM'),c('RvlS'));
+        executeAction(c('Mk  '),d,DialogModes.NO);
+    }
     try {
-        var source=new File(job.source), ext=source.name.split('.').pop().toLowerCase();
+        var isRevision=job.stage==='revision';
+        var source=new File(isRevision?job.revision_provenance.psd:job.source), ext=source.name.split('.').pop().toLowerCase();
         // Purge is application-wide. Allow it only when there are no user documents.
         var purgeOwnedHistory = job.scratch_history_policy === 'discard_owned_history';
         if(purgeOwnedHistory && app.documents.length!==0) {
@@ -100,22 +116,37 @@
             var result='Prepared '+doc.width.as('px')+'x'+doc.height.as('px')+' baseline';
             doc.close(SaveOptions.DONOTSAVECHANGES);doc=null;return result;
         }
-        doc.bitsPerChannel=BitsPerChannelType.SIXTEEN;
-        doc.activeLayer.name='原片 · 像素保留';
-        if(job.straighten_transform || job.working_profile) {
+        if(isRevision) {
+            var rp=job.revision_provenance;
+            if(doc.bitsPerChannel!==BitsPerChannelType.SIXTEEN || doc.colorProfileName!=='sRGB IEC61966-2.1'
+                || doc.layers.length!==rp.layer_count
+                || !PhotoAnnotationMasks.canvasMatches(doc.width.as('px'),doc.height.as('px'),rp.canvas)) {
+                throw new Error('Opened PSD differs from the inspected revision base');
+            }
+            doc.activeLayer=doc.layers[0];
+            exportJPEG(job.output_base+'_revision_before.jpg');
+        } else {
+          doc.bitsPerChannel=BitsPerChannelType.SIXTEEN;
+          doc.activeLayer.name='原片 · 像素保留';
+        }
+        if(!isRevision && (job.straighten_transform || job.working_profile)) {
             // Preserve the unrotated original decode inside an embedded smart object.
             executeAction(s('newPlacedLayer'),undefined,DialogModes.NO);
             doc.activeLayer.name='原片 · 内嵌未校正像素';
         }
-        if(job.working_profile) {
+        if(!isRevision && job.working_profile) {
             // Preserve source decode inside the smart object; apply fitted curves
             // in the same explicit RGB space used by the reference comparison.
             doc.convertProfile(job.working_profile,Intent.RELATIVECOLORIMETRIC,true,true);
         }
         var lightReviewLayers=[];
         for(var n=0;n<job.steps.length;n++) {
-            var step=job.steps[n]; app.activeDocument=doc;selectRegion(step.region);
-            if(step.kind==='curves')curves(step);else hueSaturation(step);
+            var step=job.steps[n]; app.activeDocument=doc;
+            if(step.kind==='clone_patch')clonePatch(step);
+            else {
+                selectRegion(step.region);
+                if(step.kind==='curves')curves(step);else hueSaturation(step);
+            }
             doc.activeLayer.name=step.name;doc.activeLayer.opacity=step.opacity === undefined ? 100 : step.opacity;
             if(step.blend==='luminosity')doc.activeLayer.blendMode=BlendMode.LUMINOSITY;
             if(step.blend==='color')doc.activeLayer.blendMode=BlendMode.COLORBLEND;

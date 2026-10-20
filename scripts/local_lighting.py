@@ -56,15 +56,36 @@ def compile_local_light(step: dict) -> tuple[dict, dict]:
         raise ValueError('Local light requires a photo-specific purpose')
     tonal_focus = step.get('tonal_focus', 'all')
     white_ceiling = step.get('white_ceiling', 255)
-    points = light_curve(step.get('action'), step.get('strength'), tonal_focus, white_ceiling)
+    response=step.get('response','relative')
+    if response == 'exposure':
+        stops=step.get('stops')
+        if (type(stops) not in (int,float) or not math.isfinite(stops) or not 0<stops<=1
+                or step.get('strength') is not None or tonal_focus!='all' or white_ceiling!=255
+                or step.get('action') not in {'dodge','burn'}):
+            raise ValueError('Exposure response uses 0..1 stops, no strength, all tones and protected white endpoint')
+        factor=2**(stops if step['action']=='dodge' else -stops)
+        points=[]
+        # Photoshop Curves admits at most 14 control points. Nine points also
+        # retain the proven native recipe format used by relative responses.
+        for value in list(range(0,256,32))+[255]:
+            t=value/255
+            linear=t/12.92 if t<=.04045 else ((t+.055)/1.055)**2.4
+            lit=factor*linear/(1+(factor-1)*linear)
+            y=12.92*lit if lit<=.0031308 else 1.055*lit**(1/2.4)-.055
+            points.append([value,round(y*255,4)])
+        points[0][1]=0;points[-1][1]=255
+    elif response == 'relative':
+        points = light_curve(step.get('action'), step.get('strength'), tonal_focus, white_ceiling)
+    else:raise ValueError('Unknown local light response')
     compiled = {'kind': 'curves', 'name': step.get('name'),
                 'channels': {'composite': points}, 'blend': 'luminosity',
                 'opacity': step.get('opacity', 100), 'region': dict(region)}
-    proof = {'name': step.get('name'), 'action': step['action'], 'strength': step['strength'],
+    proof = {'name': step.get('name'), 'action': step['action'], 'strength': step.get('strength'),
              'opacity': step.get('opacity', 100), 'purpose': step['purpose'],
              'annotation_id': region['id'], 'invert': bool(region.get('invert', False)),
              'blend': 'luminosity', 'native_curve_points': points,
              'tonal_focus': tonal_focus,
              'white_ceiling': white_ceiling,
-             'strength_unit': 'relative curve control; not physical EV'}
+             'response':response,'stops':step.get('stops'),
+             'strength_unit': ('display-referred sRGB gray exposure response with highlight shoulder; not physical relighting' if response=='exposure' else 'relative curve control; not physical EV')}
     return compiled, proof

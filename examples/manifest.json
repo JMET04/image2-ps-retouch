@@ -1,0 +1,78 @@
+{
+  "version": "0.4.0",
+  "scope": "Two authorized landscape examples only",
+  "photos": [
+    {
+      "id": "IMG_3936",
+      "review": "Manually inspected; no visible people",
+      "images": [
+        {
+          "file": "IMG_3936/original.jpg",
+          "label": "原片解码预览",
+          "sha256": "82e872d52da9f4461e9c2c3601ad25303c123133475020306be0d7aec84920e3",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_3936/reference.jpg",
+          "label": "Image2生成参考",
+          "sha256": "5c17f531c88a0c14469da498ecb29faef6433e2129b1ffdef20b85f5bdb49cf8",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_3936/v2.jpg",
+          "label": "认可第二版",
+          "sha256": "a2cc4f4afd439522ab9904e4fb70b15ba0256730a1d6c62c9d0346c496bd16ec",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_3936/off.jpg",
+          "label": "第三版关闭新增塑光",
+          "sha256": "8971761a927f05796522e4fad0cd629d2a6589521054aa7a1b6806103b6f154a",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_3936/final.jpg",
+          "label": "第三版 Photoshop 成片",
+          "sha256": "d291dc47c25ae1c8373192e166dad56e822425dfe68b75c43023d7b86c4f7113",
+          "exif_gps_removed": true
+        }
+      ]
+    },
+    {
+      "id": "IMG_4528",
+      "review": "Manually inspected; no visible people",
+      "images": [
+        {
+          "file": "IMG_4528/original.jpg",
+          "label": "原片解码预览",
+          "sha256": "77530ab8d7f79a40f8841e957bf4d28d4431cbe8d30f125e31b493e2964deb07",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_4528/reference.jpg",
+          "label": "Image2生成参考",
+          "sha256": "0ce53d39445423d049cbb8c0d48a4a18c93c52b0c67ca63c05ac7fde3e5df988",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_4528/v2.jpg",
+          "label": "认可第二版",
+          "sha256": "cba8915c0cb63fef7bbfd942e4c22a31e0982cf6cd1eb2d71c4f12193d401475",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_4528/off.jpg",
+          "label": "第三版关闭新增塑光",
+          "sha256": "8c4597903ddf629be9640b25c06e83805e44872456c03b7f5d55d0401888e087",
+          "exif_gps_removed": true
+        },
+        {
+          "file": "IMG_4528/final.jpg",
+          "label": "第三版 Photoshop 成片",
+          "sha256": "b21d10d97cc57f5d7f665d8b85a52e1c29772c7e8edb859793d9a8eb15187ff8",
+          "exif_gps_removed": true
+        }
+      ]
+    }
+  ]
+}

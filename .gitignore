@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.tmp
+.venv/
+*.psd
+*.psb
+.retouch-session.json
+native-state.json

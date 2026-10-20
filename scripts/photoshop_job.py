@@ -24,6 +24,8 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         raise ValueError('Unknown stage')
     if 'save_psd' in job and (not isinstance(job['save_psd'], bool) or stage != 'retouch'):
         raise ValueError('save_psd is a boolean retouch-only output option')
+    if 'lighting_review' in job and (not isinstance(job['lighting_review'], bool) or stage != 'retouch'):
+        raise ValueError('lighting_review is a boolean retouch-only output option')
     if job.get('input_profile') and (job['input_profile'] not in {'sRGB IEC61966-2.1', 'Adobe RGB (1998)', 'ProPhoto RGB'} or not job.get('input_profile_evidence')):
         raise ValueError('Input profile assignment requires a supported profile and evidence')
     if job.get('working_profile') and (job['working_profile'] != 'sRGB IEC61966-2.1'
@@ -63,6 +65,15 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         job['local_lighting_provenance'] = {'plan': dict(job['lighting_plan']), 'steps': lighting,
                                           'pixel_source': 'original photograph',
                                           'engine': 'native masked Photoshop luminosity curves'}
+    if job.get('lighting_review'):
+        if not lighting:
+            raise ValueError('Lighting comparison requires local_light layers to toggle')
+        job['lighting_review_indices'] = [i for i,s in enumerate(job['steps'])
+                                          if any(p['name'] == s['name'] for p in lighting)]
+        if len({s['name'] for s in job['steps']}) != len(job['steps']):
+            raise ValueError('Lighting comparison needs unique layer names')
+    else:
+        job.pop('lighting_review_indices', None)
     compiled = None
     if job.get('annotations'):
         annotation_path = Path(job['annotations'])
@@ -139,6 +150,8 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         if (b[2]-b[0])*(b[3]-b[1]) < .7:
             raise ValueError('Crop discards more than 30% area; reconsider selection or explicitly adapt workflow')
     suffixes = ['_baseline.jpg'] if stage == 'prepare' else ((['.psd'] if job.get('save_psd', True) else []) + ['.jpg', '_execution.json'])
+    if job.get('lighting_review'):
+        suffixes.append('_lighting_off.jpg')
     for suffix in suffixes:
         destination = Path(str(output) + suffix)
         if destination == source:
@@ -228,6 +241,12 @@ def main():
         report['recipe_fingerprint'] = recipe_fingerprint
         report['engine_sha256'] = hashlib.sha256(engine.encode('utf-8')).hexdigest()
         suffixes = ['_baseline.jpg'] if job['stage'] == 'prepare' else ['.jpg'] + (['.psd'] if job.get('save_psd', True) else [])
+        if job.get('lighting_review'):
+            suffixes.append('_lighting_off.jpg')
+            report['lighting_comparison'] = {'on':job['output_base']+'.jpg',
+                'off':job['output_base']+'_lighting_off.jpg',
+                'toggled_layer_names':[job['steps'][i]['name'] for i in job['lighting_review_indices']],
+                'scope':'Same native document, grade and geometry; only designated local_light layers toggled. Requires visual review.'}
         report['output_fingerprints'] = [fingerprint(job['output_base'] + suffix) for suffix in suffixes]
         if session:
             report['fresh_small_session'] = session

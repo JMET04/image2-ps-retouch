@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$RecipePath,
-    [string]$PhotoshopPath = 'D:\PS\Adobe Photoshop 2026\Photoshop.exe',
-    [string]$PythonPath = 'C:\Users\刘佳明\AppData\Local\Programs\Python\Python312\python.exe'
+    [Parameter(Mandatory=$true)][string]$PhotoshopPath,
+    [string]$PythonPath = 'python',
+    [ValidateSet('Standard','ConstrainedSmall')][string]$SessionMode = 'Standard'
 )
 $ErrorActionPreference = 'Stop'
 function Wait-PhotoshopExit {
@@ -21,7 +22,7 @@ function Wait-PhotoshopExit {
 }
 $recipeFile = (Resolve-Path -LiteralPath $RecipePath).Path
 $photoshopFile = (Resolve-Path -LiteralPath $PhotoshopPath).Path
-$pythonFile = (Resolve-Path -LiteralPath $PythonPath).Path
+$pythonFile = (Get-Command $PythonPath -ErrorAction Stop).Source
 $jobScript = Join-Path $PSScriptRoot 'photoshop_job.py'
 & $pythonFile -X utf8 (Join-Path $PSScriptRoot 'project_session.py') --context $recipeFile --reserve-seconds 720
 if ($LASTEXITCODE -ne 0) { throw 'Project session limit prevents a new Photoshop lifecycle.' }
@@ -47,6 +48,13 @@ $controlFreeBytes = (Get-PSDrive -Name $controlDriveName).Free
 if ($controlFreeBytes -lt 512MB) {
     throw "Control/cache drive $controlDriveName has only $([math]::Round($controlFreeBytes / 1MB)) MiB free; reserve at least 512 MiB before launching Photoshop. No photo submitted."
 }
+if ($SessionMode -eq 'Standard') {
+    $outputRoot = [IO.Path]::GetPathRoot([IO.Path]::GetFullPath([string]$photoRecipe.output_base))
+    $outputDriveName = $outputRoot.Substring(0,1)
+    if ((Get-PSDrive -Name $outputDriveName).Free -lt 16GB) {
+        throw 'Standard mode requires at least 16 GiB on the output drive before Photoshop startup.'
+    }
+}
 if (Get-Process -Name Photoshop -ErrorAction SilentlyContinue) {
     & $pythonFile -X utf8 $jobScript --quit-idle
     if ($LASTEXITCODE -ne 0) { throw 'Guarded normal idle quit failed; inspect before recovery' }
@@ -59,7 +67,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Project session limit reached before Photoshop
 Start-Process -FilePath $photoshopFile -WindowStyle Normal
 & $pythonFile -X utf8 $jobScript --wait-startup-idle
 if ($LASTEXITCODE -ne 0) { throw 'Bounded startup readiness failed; no photo job submitted' }
-& $pythonFile -X utf8 $jobScript $recipeFile --fresh-small-session $photoshopFile
+if ($SessionMode -eq 'ConstrainedSmall') {
+    & $pythonFile -X utf8 $jobScript $recipeFile --fresh-small-session $photoshopFile
+} else {
+    & $pythonFile -X utf8 $jobScript $recipeFile
+}
 if ($LASTEXITCODE -ne 0) {
     if (Test-Path -LiteralPath $savedReceiptPath) {
         $savedReceipt = Get-Content -LiteralPath $savedReceiptPath -Raw | ConvertFrom-Json
@@ -68,5 +80,9 @@ if ($LASTEXITCODE -ne 0) {
         }
     }
     throw 'Native photo job failed; no retry submitted'
+}
+if ($SessionMode -eq 'Standard') {
+    & $pythonFile -X utf8 $jobScript --quit-idle
+    if ($LASTEXITCODE -ne 0) { throw "Photo receipt is saved; normal idle quit failed. Inspect $savedReceiptPath and native state; do not resubmit." }
 }
 Wait-PhotoshopExit

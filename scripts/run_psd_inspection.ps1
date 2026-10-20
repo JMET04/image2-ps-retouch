@@ -1,13 +1,13 @@
 param(
     [Parameter(Mandatory=$true)][string]$PsdPath,
     [Parameter(Mandatory=$true)][string]$ProofPath,
-    [string]$PhotoshopPath = 'D:\PS\Adobe Photoshop 2026\Photoshop.exe',
-    [string]$PythonPath = 'C:\Users\刘佳明\AppData\Local\Programs\Python\Python312\python.exe'
+    [Parameter(Mandatory=$true)][string]$PhotoshopPath,
+    [string]$PythonPath = 'python'
 )
 $ErrorActionPreference = 'Stop'
 $psdFile = (Resolve-Path -LiteralPath $PsdPath).Path
 $photoshopFile = (Resolve-Path -LiteralPath $PhotoshopPath).Path
-$pythonFile = (Resolve-Path -LiteralPath $PythonPath).Path
+$pythonFile = (Get-Command $PythonPath -ErrorAction Stop).Source
 $jobScript = Join-Path $PSScriptRoot 'photoshop_job.py'
 & $pythonFile -X utf8 (Join-Path $PSScriptRoot 'project_session.py') --context $psdFile --reserve-seconds 600
 if ($LASTEXITCODE -ne 0) { throw 'Project session limit prevents a new PSD inspection lifecycle.' }

@@ -112,12 +112,18 @@
             // in the same explicit RGB space used by the reference comparison.
             doc.convertProfile(job.working_profile,Intent.RELATIVECOLORIMETRIC,true,true);
         }
+        var lightReviewLayers=[];
         for(var n=0;n<job.steps.length;n++) {
             var step=job.steps[n]; app.activeDocument=doc;selectRegion(step.region);
             if(step.kind==='curves')curves(step);else hueSaturation(step);
             doc.activeLayer.name=step.name;doc.activeLayer.opacity=step.opacity === undefined ? 100 : step.opacity;
             if(step.blend==='luminosity')doc.activeLayer.blendMode=BlendMode.LUMINOSITY;
             if(step.blend==='color')doc.activeLayer.blendMode=BlendMode.COLORBLEND;
+            if(job.lighting_review_indices) {
+                for(var li=0;li<job.lighting_review_indices.length;li++) {
+                    if(job.lighting_review_indices[li]===n)lightReviewLayers.push(doc.activeLayer);
+                }
+            }
             doc.selection.deselect();
             if(purgeOwnedHistory) {
                 if(app.documents.length!==1 || app.activeDocument!==doc) {
@@ -142,6 +148,15 @@
             var b=job.crop,w=doc.width.as('px'),h=doc.height.as('px');
             // Crop is recorded; the untouched source remains available separately.
             doc.crop([UnitValue(b[0]*w,'px'),UnitValue(b[1]*h,'px'),UnitValue(b[2]*w,'px'),UnitValue(b[3]*h,'px')]);
+        }
+        if(job.lighting_review) {
+            if(!lightReviewLayers.length)throw new Error('No native light layers available for comparison');
+            try {
+                for(var lo=0;lo<lightReviewLayers.length;lo++)lightReviewLayers[lo].visible=false;
+                exportJPEG(job.output_base+'_lighting_off.jpg');
+            } finally {
+                for(var lr=0;lr<lightReviewLayers.length;lr++)lightReviewLayers[lr].visible=true;
+            }
         }
         if(job.save_psd !== false) {
             var opt=new PhotoshopSaveOptions();opt.layers=true;opt.embedColorProfile=true;opt.alphaChannels=true;

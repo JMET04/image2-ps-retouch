@@ -18,6 +18,18 @@ var PhotoAnnotationMasks = (function () {
             throw new Error('Annotation canvas differs from the native document; reannotate the actual baseline');
         }
         w = canvas[0]; h = canvas[1];
+        var broad = region.broad_feather_px;
+        if (broad !== undefined) {
+            var positives = 0;
+            for (var b = 0; b < region.contours.length; b++)
+                if (region.contours[b].operation === 'add') {
+                    positives++;
+                    if (region.contours[b].feather_px !== 0) throw new Error('Broad contour must start unfeathered');
+                }
+            if (typeof broad !== 'number' || !isFinite(broad) || broad < 1 || broad > Math.min(1000, Math.min(w,h)/3) ||
+                region.feather_mode !== 'per_contour' || region.feather_px !== 0 || positives !== 1)
+                throw new Error('Invalid broad native feather');
+        }
         doc.selection.deselect();
         var first = true;
         // Union all positive contours before subtracting holes, independent of JSON order.
@@ -32,6 +44,14 @@ var PhotoAnnotationMasks = (function () {
                 if (typeof contourFeather !== 'number' || !isFinite(contourFeather) || contourFeather < 0 || contourFeather > 250)
                     throw new Error('Invalid contour feather: ' + region.id);
                 doc.selection.select(points, mode, contourFeather, true);
+                if (pass === 0 && broad !== undefined) {
+                    // Repeated native feather passes broaden only the light field.
+                    // Radius is an approximate equivalent scale, not a measured PS sigma.
+                    // Later subtraction keeps the independently feathered shore/subject protection.
+                    var count = Math.ceil((broad / 250) * (broad / 250));
+                    var radius = broad / Math.sqrt(count);
+                    for (var f = 0; f < count; f++) doc.selection.feather(radius);
+                }
                 first = false;
             }
         }

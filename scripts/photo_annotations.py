@@ -229,8 +229,16 @@ def compile_annotations(data, require_review=True, expected_source=None):
             contours.append(compiled_contour)
         if not contours or not any(c['operation'] == 'add' for c in contours):
             raise ValueError('A region needs at least one positive contour')
+        broad = None
+        if 'broad_feather_px' in region:
+            broad = number(region['broad_feather_px'], 1, min(1000, min(width, height) / 3), 'broad native feather')
+            positive = [c for c in contours if c['operation'] == 'add']
+            if feather_mode != 'per_contour' or len(positive) != 1 or positive[0]['feather_px'] != 0:
+                raise ValueError('Broad feather needs per_contour mode and exactly one unfeathered positive contour')
         regions[region_id] = {'kind': 'annotated', 'id': region_id, 'label': region['label'],
                               'contours': contours, 'feather_px': feather}
+        if broad is not None:
+            regions[region_id]['broad_feather_px'] = broad
         if feather_mode == 'per_contour':
             regions[region_id]['feather_mode'] = feather_mode
     if not regions:
@@ -271,7 +279,8 @@ def overlay(data, output):
             draw.text((x + 3, y + 2), str(i + 1) + ('-' if contour['operation'] == 'subtract' else '+'), fill='black')
         legends.append({'number': i + 1, 'region_id': region_id, 'label': region['label'], 'feather_native_px': region['feather_px'],
                         'feather_mode': region.get('feather_mode', 'combined'),
-                        'contour_feathers': [c.get('feather_px') for c in region['contours']]})
+                        'contour_feathers': [c.get('feather_px') for c in region['contours']],
+                        'broad_feather_native_px': region.get('broad_feather_px')})
     output.parent.mkdir(parents=True, exist_ok=True)
     image.save(output)
     write_fresh(report, {'purpose': 'annotation geometry preview only; not a retouched photograph',

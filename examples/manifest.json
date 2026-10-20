@@ -160,5 +160,80 @@
         }
       ]
     }
-  ]
+  ],
+  "latest_engine_version": "0.5.1",
+  "v5_update": {
+    "id": "IMG_4528",
+    "scope": "Only this previously authorized landscape; old v3 examples retained.",
+    "images": [
+      {
+        "file": "IMG_4528/v5/v4.jpg",
+        "label": "第四版 / 完整修改前",
+        "sha256": "ae519e6495ba9e8d49684abc19c2fdfdfdc970769a036bc571b3f0fd4fcbd5da",
+        "exif_gps_removed": true
+      },
+      {
+        "file": "IMG_4528/v5/v5.jpg",
+        "label": "第五版 / Photoshop原片成片",
+        "sha256": "c2b276bf462b48f97c78c49cb9954d8bb05fde682d337da450315f61327a4fbc",
+        "exif_gps_removed": true
+      },
+      {
+        "file": "IMG_4528/v5/off.jpg",
+        "label": "仅关闭本轮4个塑光层 / 减青保持开启",
+        "sha256": "8cabaa8ae80815258159dd116cb8083656c2e43b0338ac9644952a591d760108",
+        "exif_gps_removed": true
+      },
+      {
+        "file": "IMG_4528/v5/reference.jpg",
+        "label": "Image2 / 生成参考",
+        "sha256": "b1e228a7d622e73c7fa5d82b2edca260fc9cfa3ab3b1e4409fe20d9fa950aa47",
+        "exif_gps_removed": true
+      }
+    ],
+    "comparisons": [
+      {
+        "file": "IMG_4528/v5/comparison.jpg",
+        "sha256": "6b4ec02a1bc1e556cb78f3ea4531345e707f5015d4b6a84c4566d570febecb0c",
+        "inputs": [
+          "v4.jpg",
+          "reference.jpg",
+          "v5.jpg"
+        ],
+        "labels": [
+          "第四版 / 完整修改前",
+          "Image2 / 生成参考",
+          "第五版 / PS原片成片"
+        ],
+        "method": "display-only proportional layout"
+      },
+      {
+        "file": "IMG_4528/v5/revision-comparison.jpg",
+        "sha256": "1e1536c32cd5b07a6dca43c70bb1997effe13d951267f87c0bd96f13f1a83376",
+        "inputs": [
+          "v4.jpg",
+          "v5.jpg"
+        ],
+        "labels": [
+          "第四版 / 完整修改前",
+          "第五版 / 本轮交付"
+        ],
+        "method": "display-only proportional layout"
+      },
+      {
+        "file": "IMG_4528/v5/lighting-comparison.jpg",
+        "sha256": "a98e21c7c2deea4a5227993abc578283bb47414c85b567c069d113d00df4c9d3",
+        "inputs": [
+          "off.jpg",
+          "v5.jpg"
+        ],
+        "labels": [
+          "关闭本轮4个塑光层",
+          "开启本轮4个塑光层"
+        ],
+        "method": "display-only proportional layout"
+      }
+    ],
+    "visual_review": "accepted: three layouts and full inputs observed; no visible people, full frames proportional, labels distinguish complete before/after from 4 light layers with color curve retained"
+  }
 }

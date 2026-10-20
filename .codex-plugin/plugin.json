@@ -1,6 +1,6 @@
 {
   "name": "image2-ps-retouch",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Review photographs with ChatGPT vision, shape local light, repair small observed defects, and revise editable Photoshop files while preserving original pixels.",
   "author": {
     "name": "Local Photography Workflow"

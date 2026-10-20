@@ -38,6 +38,12 @@ python -X utf8 scripts/photoshop_job.py .\my-recipe.json --validate-only
 | [雪鞍与湖岸](examples/IMG_3936/README.md) | 原片、生成参考、第二版、塑光关闭、第三版 |
 | [坡面体积与前景退让](examples/IMG_4528/README.md) | 同底稿开关对照，保护谷地冷反射 |
 
-![第三版风景展示](examples/IMG_3936/final.jpg)
+![雪鞍与湖岸：原片、生成参考、PS三联对比](examples/IMG_3936/comparison.jpg)
+
+![雪鞍与湖岸：同底稿塑光开关对比](examples/IMG_3936/lighting-comparison.jpg)
+
+![坡面体积：原片、生成参考、PS三联对比](examples/IMG_4528/comparison.jpg)
+
+![坡面体积：同底稿塑光开关对比](examples/IMG_4528/lighting-comparison.jpg)
 
 0.4.0在36张原片上逐张执行并实际验收；全部最终PSD已在Photoshop重新打开核验。公开仓库仅含上述两组无人物预览，人物照片和完整项目记录保留在本地。

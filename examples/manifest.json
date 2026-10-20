@@ -36,6 +36,49 @@
           "sha256": "d291dc47c25ae1c8373192e166dad56e822425dfe68b75c43023d7b86c4f7113",
           "exif_gps_removed": true
         }
+      ],
+      "comparisons": [
+        {
+          "file": "IMG_3936/comparison.jpg",
+          "sha256": "6a526dc38552d0d9b93ad7e552c9808c2e72e45badfb20f5414840b6429792ed",
+          "inputs": [
+            {
+              "file": "original.jpg",
+              "sha256": "82e872d52da9f4461e9c2c3601ad25303c123133475020306be0d7aec84920e3",
+              "label": "原片解码预览"
+            },
+            {
+              "file": "reference.jpg",
+              "sha256": "5c17f531c88a0c14469da498ecb29faef6433e2129b1ffdef20b85f5bdb49cf8",
+              "label": "Image2生成参考"
+            },
+            {
+              "file": "final.jpg",
+              "sha256": "d291dc47c25ae1c8373192e166dad56e822425dfe68b75c43023d7b86c4f7113",
+              "label": "第三版PS原像素成片"
+            }
+          ],
+          "method": "layout only; proportional full-frame images, no photographic pixel edits",
+          "visual_review": "accepted: labels and full-frame aspect ratios inspected; no visible people; photo inputs unchanged"
+        },
+        {
+          "file": "IMG_3936/lighting-comparison.jpg",
+          "sha256": "58691a3874f8c7d5034604bca0e97e703adfbd2a75e70cf569edf5bf94e96d32",
+          "inputs": [
+            {
+              "file": "off.jpg",
+              "sha256": "8971761a927f05796522e4fad0cd629d2a6589521054aa7a1b6806103b6f154a",
+              "label": "同底稿 · 关闭塑光"
+            },
+            {
+              "file": "final.jpg",
+              "sha256": "d291dc47c25ae1c8373192e166dad56e822425dfe68b75c43023d7b86c4f7113",
+              "label": "同底稿 · 开启塑光"
+            }
+          ],
+          "method": "layout only; proportional full-frame images, no photographic pixel edits",
+          "visual_review": "accepted: labels and full-frame aspect ratios inspected; no visible people; photo inputs unchanged"
+        }
       ]
     },
     {
@@ -71,6 +114,49 @@
           "label": "第三版 Photoshop 成片",
           "sha256": "b21d10d97cc57f5d7f665d8b85a52e1c29772c7e8edb859793d9a8eb15187ff8",
           "exif_gps_removed": true
+        }
+      ],
+      "comparisons": [
+        {
+          "file": "IMG_4528/comparison.jpg",
+          "sha256": "9ee83d6dda0124b4ba5b89d225fad079e04e000b265049f1ae6c1546ec1b3b4a",
+          "inputs": [
+            {
+              "file": "original.jpg",
+              "sha256": "77530ab8d7f79a40f8841e957bf4d28d4431cbe8d30f125e31b493e2964deb07",
+              "label": "原片解码预览"
+            },
+            {
+              "file": "reference.jpg",
+              "sha256": "0ce53d39445423d049cbb8c0d48a4a18c93c52b0c67ca63c05ac7fde3e5df988",
+              "label": "Image2生成参考"
+            },
+            {
+              "file": "final.jpg",
+              "sha256": "b21d10d97cc57f5d7f665d8b85a52e1c29772c7e8edb859793d9a8eb15187ff8",
+              "label": "第三版PS原像素成片"
+            }
+          ],
+          "method": "layout only; proportional full-frame images, no photographic pixel edits",
+          "visual_review": "accepted: labels and full-frame aspect ratios inspected; no visible people; photo inputs unchanged"
+        },
+        {
+          "file": "IMG_4528/lighting-comparison.jpg",
+          "sha256": "2eefe3e00104e337b79498c2d2948d34bb6b548127ae3147e9546ef5b1f4fe96",
+          "inputs": [
+            {
+              "file": "off.jpg",
+              "sha256": "8c4597903ddf629be9640b25c06e83805e44872456c03b7f5d55d0401888e087",
+              "label": "同底稿 · 关闭塑光"
+            },
+            {
+              "file": "final.jpg",
+              "sha256": "b21d10d97cc57f5d7f665d8b85a52e1c29772c7e8edb859793d9a8eb15187ff8",
+              "label": "同底稿 · 开启塑光"
+            }
+          ],
+          "method": "layout only; proportional full-frame images, no photographic pixel edits",
+          "visual_review": "accepted: labels and full-frame aspect ratios inspected; no visible people; photo inputs unchanged"
         }
       ]
     }

@@ -1,24 +1,26 @@
 {
   "name": "image2-ps-retouch",
-  "version": "0.5.1",
-  "description": "Review photographs with ChatGPT vision, shape local light, repair small observed defects, and revise editable Photoshop files while preserving original pixels.",
+  "version": "0.6.0",
+  "description": "Diagnose photographic defects before Image2 references, shape local light, repair observed scene distractions with same-photo pixels, and verify editable Photoshop results.",
   "author": {
     "name": "Local Photography Workflow"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "原片精修 · Image2 + Photoshop",
-    "shortDescription": "ChatGPT 看图，用 PS 加光塑形、修小瑕疵并保留图层续修。",
-    "longDescription": "包含原图选片、Image2 审美参考、ChatGPT 视觉标注和 Photoshop 原尺寸可编辑蒙版。模型判断主光方向与主体关系，分别建立局部补光、压光和体积塑造；独立强度、羽化与不透明度可调。支持有来源绑定的既有PSD续修及同片真实像素小范围柔边克隆，逐张检查实际瑕疵和自然面部细节。停用PS自动主体和天空识别；保留原像素，分别验证文件与视觉效果。",
+    "shortDescription": "先诊断光影、污点和构图，再用 Image2 参考与原生 PS 完成并验收。",
+    "longDescription": "ChatGPT 先实际观察原片与100%细节，区分污点、玻璃反射、边缘干扰与真实主体，保存诊断后才生成Image2参考。模型标注主光、受光面和保护结构，Photoshop用原片像素建立局部曲线、蒙版及同片整数平移修复，保留可编辑图层。逐项检查修复边界、塑光开关和原生细节，再真正重开最终PSD核验。生成图像仅作方向，执行成功不代替视觉验收。",
     "developerName": "Local Photography Workflow",
     "category": "Productivity",
     "capabilities": [
       "Photo culling",
+      "Defect-first visual diagnosis",
       "ChatGPT visual annotations",
       "Image2 art direction",
       "Local light shaping",
       "Native Photoshop masks",
       "Small original-pixel clone repairs",
+      "Reviewed same-photo scene repairs",
       "Evidence-bound PSD revisions",
       "Quality review"
     ]

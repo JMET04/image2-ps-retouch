@@ -13,6 +13,8 @@ from local_lighting import compile_local_light
 from straightening import compile_straightening
 from revision_source import validate_revision
 from repair_patches import compile_patch
+from scene_repairs import compile_scene_patch
+from vision_preflight import validate_preflight
 
 
 def validate(job: dict, recipe_dir: Path | None = None) -> dict:
@@ -52,6 +54,9 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
         if not job.get('steps'):
             raise ValueError('Photo-specific steps are required')
     job = dict(job)
+    job.pop('vision_preflight_provenance', None)
+    if job.get('vision_preflight'):
+        job['vision_preflight_provenance'] = validate_preflight(job['vision_preflight'], source, job['reference'])
     job.pop('revision_provenance',None)
     if stage=='revision':
         job['revision_provenance']=validate_revision(job.get('revision'),source)
@@ -110,6 +115,14 @@ def validate(job: dict, recipe_dir: Path | None = None) -> dict:
     for i,step in enumerate(job.get('steps', [])):
         if not isinstance(step.get('name'), str) or not step['name'].strip():
             raise ValueError('Each adjustment needs a meaningful layer name')
+        if step.get('kind')=='scene_patch':
+            if adjustment_seen:
+                raise ValueError('Scene repairs must precede new light/color adjustments')
+            if not job.get('vision_preflight'):
+                raise ValueError('Scene repairs require explicit defect diagnosis before reference')
+            job['steps'][i],proof=compile_scene_patch(step,compiled)
+            repairs.append(proof)
+            continue
         if step.get('kind')=='clone_patch':
             if stage!='revision' or adjustment_seen:
                 raise ValueError('Small repair patches must precede new revision adjustments')
@@ -285,6 +298,8 @@ def main():
             report['normal_idle_quit'] = {'status': 'pending'}
         if job['stage'] in {'retouch','revision'}:
             report['saved_psd'] = job.get('save_psd', True)
+        if job.get('vision_preflight_provenance'):
+            report['vision_preflight_provenance'] = job['vision_preflight_provenance']
         if job.get('repair_provenance'):report['repair_provenance']=job['repair_provenance']
         if job.get('annotation_provenance'):
             report['annotation_provenance'] = job['annotation_provenance']

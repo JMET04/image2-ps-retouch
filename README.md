@@ -2,9 +2,11 @@
 
 用 Image2 选择摄影后期的审美方向，用 ChatGPT 实际观察照片、设计局部光影，再由 Photoshop 对原片建立可编辑曲线和蒙版。生成参考的像素不会进入成片。
 
-工作流程：检查原片与100%焦点 → 逐张生成参考 → 记录主光、视觉落点、受光/背光面与环境反射 → 标注并实际查看蒙版预览 → 原生 Photoshop 工作样 → 塑光开关和100%细节复核 → 保存16位PSD与sRGB JPEG → 真正重新打开PSD核验。执行成功与视觉验收分别记录。
+工作流程：实际观察原片、旧成片与100%细节 → 先诊断光影、污点、玻璃反射及构图干扰 → 把逐项修正目标写入新Image2参考 → 记录主光、视觉落点、受光/背光面与环境反射 → 标注并实际查看蒙版预览 → 原生 Photoshop 工作样 → 逐缺陷、塑光开关和100%细节复核 → 保存16位PSD与sRGB JPEG → 真正重新打开PSD核验。执行成功与视觉验收分别记录。
 
 从 [SKILL.md](skills/original-photo-retouch/SKILL.md) 开始。具体参数见 [配方与执行](skills/original-photo-retouch/references/recipe.md)、[模型标注](skills/original-photo-retouch/references/vision-annotations.md)、[光影设计](skills/original-photo-retouch/references/light-design.md) 和 [局部修复与保留图层续修](skills/original-photo-retouch/references/repair-and-revision.md)。
+
+[缺陷诊断先于参考](skills/original-photo-retouch/references/defect-first.md)说明如何区分主体与干扰、绑定实际观察与新参考，以及同片场景修复的限制。新修图按此流程执行；历史已验收配方保持兼容，不倒填观察证据。
 
 ## 环境
 
@@ -60,3 +62,5 @@ python -X utf8 scripts/photoshop_job.py .\my-recipe.json --validate-only
 ![第五版湖面：第四版、Image2参考、第五版](examples/IMG_4528/v5/comparison.jpg)
 
 ![第五版湖面：第四版与第五版完整修改对照](examples/IMG_4528/v5/revision-comparison.jpg)
+
+0.6.0加入原片/实看图/新参考的哈希绑定及诊断时间次序校验；同片场景修复仅允许模型复核的整数平移取样，限制面积、羽化和边界，并保护真实结构。光影先组织明度与宽光场，再校正颜色；每轮仍须看PS实际反馈。全部36张再次全幅复审，3张按需重修、33张保留已有成果；新增3张最终PSD已实际重开，48项自动测试通过。新增照片与私人核对记录仅本地交付，公开展示继续沿用上面已授权的历史风景案例，不把它们标作本轮新效果。

@@ -74,6 +74,24 @@
         var patch=doc.paste();
         var actual=patch.bounds,t=step.target_bounds;
         patch.translate(UnitValue(t[0]-actual[0].as('px'),'px'),UnitValue(t[1]-actual[1].as('px'),'px'));
+        if(step.rgb_offset) {
+            // Tone-match only the pasted original-photo pixels. No new texture.
+            var settings=new ActionDescriptor(), list=new ActionList();
+            var channels=['Rd  ','Grn ','Bl  '];
+            for(var ci=0;ci<3;ci++) {
+                var delta=step.rgb_offset[ci]; if(!delta)continue;
+                var curve=new ActionDescriptor(), cr=new ActionReference(), points=new ActionList();
+                cr.putEnumerated(c('Chnl'),c('Chnl'),c(channels[ci]));curve.putReference(c('Chnl'),cr);
+                var ins=[0,128,255];
+                for(var pi=0;pi<3;pi++) {
+                    var pt=new ActionDescriptor();pt.putDouble(c('Hrzn'),ins[pi]);
+                    pt.putDouble(c('Vrtc'),Math.max(0,Math.min(255,ins[pi]+delta)));
+                    points.putObject(c('Pnt '),pt);
+                }
+                curve.putList(c('Crv '),points);list.putObject(c('CrvA'),curve);
+            }
+            if(list.count){settings.putList(c('Adjs'),list);executeAction(c('Crvs'),settings,DialogModes.NO);}
+        }
         selectRegion(step.region);
         var d=new ActionDescriptor(),ref=new ActionReference();
         d.putClass(c('Nw  '),c('Chnl'));ref.putEnumerated(c('Chnl'),c('Chnl'),c('Msk '));
@@ -142,7 +160,7 @@
         var lightReviewLayers=[];
         for(var n=0;n<job.steps.length;n++) {
             var step=job.steps[n]; app.activeDocument=doc;
-            if(step.kind==='clone_patch')clonePatch(step);
+            if(step.kind==='clone_patch' || step.kind==='scene_patch')clonePatch(step);
             else {
                 selectRegion(step.region);
                 if(step.kind==='curves')curves(step);else hueSaturation(step);
